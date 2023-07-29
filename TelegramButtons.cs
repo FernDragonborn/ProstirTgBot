@@ -17,9 +17,9 @@
         internal const string BtnLeisureGym = "Спортзал 🏋🤸‍";
         internal const string BtnLeisureFriend = "Погуляти з другом 💑";
         //activities menu
-        internal const string BtnSearchActivity = "Шукати тусовки 🕵";
-        internal const string BtnVolunteering = "Волонтерство ";
-        internal const string BtnFillInForm = "Заповнити форму в спільножиток";
+        internal const string BtnActivitySearch = "Шукати тусовки 🕵";
+        internal const string BtnActivityVolunteering = "Волонтерство ";
+        internal const string BtnActivityFillInForm = "Заповнити форму в спільножиток";
         //internal const string Btn = "Шукати тусовки 🕵";
         //relocation menu
         internal const string BtnRelocationCampus = "Гуртожиток 🔞";

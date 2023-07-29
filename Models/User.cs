@@ -23,7 +23,7 @@ namespace ProstirTgBot.Models
         public long ChatId { get; init; }
         [MaxLength(50)]
         public string Username { get; set; }
-        private string _inGameName;
+        private string? _inGameName;
         [MaxLength(50)]
         public string? InGameName
         {
@@ -53,7 +53,8 @@ namespace ProstirTgBot.Models
             get => _time;
             set
             {
-                if (value > 0 && value <= 4) _time = value;
+                if (value < 0) ;
+                if (value >= 0 && value <= 4) _time = value;
                 if (value > 4) _time = 4;
             }
         }
@@ -64,7 +65,8 @@ namespace ProstirTgBot.Models
             get => _energy;
             set
             {
-                if (value > -1 && value <= 100) _energy = value;
+                if (value <= 0) _energy = 0;
+                if (value >= 0 && value <= 100) _energy = value;
                 if (value > 100) _energy = 100;
             }
         }
@@ -75,13 +77,11 @@ namespace ProstirTgBot.Models
             get => _health;
             set
             {
-                if (value < 0) GameHandler.Reset();
-                if (value > 0 && value <= 100) _health = value;
+                if (value <= 0) _health = 0;
+                if (value >= 0 && value <= 100) _health = value;
                 if (value > 100) _health = 100;
             }
         }
-
-
 
         private int _happiness;
         public int Happiness
@@ -89,20 +89,15 @@ namespace ProstirTgBot.Models
             get => _happiness;
             set
             {
+                if (value <= 0) _happiness = 0;
                 if (value > 0 && value <= 100) _happiness = value;
                 if (value > 100) _happiness = 100;
             }
         }
 
-        private int _money;
-        public int Money
-        {
-            get => _money;
-            set
-            {
-                if (value >= 0) _money = value;
-            }
-        }
+        public int Money { get; set; }
+
+        public bool IsFormFilled { get; set; }
 
         public ApartmentEnum Apartment { get; set; }
     }

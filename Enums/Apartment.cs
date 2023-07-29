@@ -5,8 +5,6 @@
         Family,
         Campus,
         SmallFlat,
-        BigFlat,
         Coliving,
     }
-
 }

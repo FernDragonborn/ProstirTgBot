@@ -7,6 +7,7 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using static ProstirTgBot.GameHandler;
 using static ProstirTgBot.TelegramButtons;
 
 namespace ProstirTgBot
@@ -26,7 +27,7 @@ namespace ProstirTgBot
                 Menus.Start,
                 new ReplyKeyboardMarkup(new[]
                     {
-                        new KeyboardButton[] { },
+                        new KeyboardButton[] { btnStart },
                     })
                     { ResizeKeyboard = true }
             },
@@ -71,7 +72,7 @@ namespace ProstirTgBot
                 Menus.Activity,
                 new ReplyKeyboardMarkup(new[]
                     {
-                        new KeyboardButton[] { BtnSearchActivity },
+                        new KeyboardButton(BtnActivitySearch),
                     })
                     { ResizeKeyboard = true }
             },
@@ -86,7 +87,8 @@ namespace ProstirTgBot
                     { ResizeKeyboard = true }
             }
         };
-        //private static Dictionary<long, Models.User> _usersDict = new();
+
+        private const string helpMessage = "Тут можна надати фідбек або отримтаи допомогу. Слідуйте меню знинзу 🥰\n\nКоманди:\n/reset - скидає прогрес до першого дня";
 
         private readonly TelegramBotClient _botClient = new(Token);
         public Func<ITelegramBotClient, Exception, CancellationToken, Task> HandlePollingErrorAsync { get; private set; } = null!;
@@ -97,7 +99,6 @@ namespace ProstirTgBot
         };
         readonly CancellationTokenSource _cts = new();
         private readonly CancellationToken _cancellationToken;
-
         #endregion
 
         internal async Task Init(Data.ProstirTgBotContext context)
@@ -146,43 +147,98 @@ namespace ProstirTgBot
                     return;
                 }
 
-                if (messageText == btnStart)
-                {
-                    user.State = Menus.GetName;
-                    await SetKeyboard(chatId, _menusDic[user.State], "Напиши як тебе називати протягом гри");
-                    return;
-                }
-
-                // user commands
-                if (messageText == "/help" && chatId != AdminToken)
-                {
-                    //TODO переписати хелпу
-                    await SendMessageAsync(chatId, "Тут можна надати фідбек або отримтаи допомогу. Слідуйте меню знинзу 🥰\n\nКоманди:\n/reset - скидає прогрес до першого дня");
-                    return;
-                }
-                if (messageText == "/reset")
-                {
-                    GameHandler.Reset(user, context);
-                    await SendMessageAsync(chatId, "Прогрес зброшений! 🤠");
-                }
-                // choose of menu
+                // choose of menu of commands
                 switch (messageText)
                 {
-                    case BtnWork: user.State = Menus.Work; await SetKeyboard(chatId, _menusDic[user.State]); break;
+                    case "/help": await SendMessageAsync(chatId, helpMessage); return;
+                    case "/reset":
+                        {
+                            Reset(user, context, GameOverEnum.manual);
+                            await SendMessageAsync(chatId, "Прогрес зброшений! 🤠");
+                            return;
+                        }
+                    case btnStart:
+                        {
+                            user.State = Menus.GetName;
+                            await SetKeyboard(chatId, _menusDic[user.State], "Напиши як тебе називати протягом гри");
+                            return;
+                        }
+
+                    case BtnWork: user.State = Menus.Work; await SetKeyboard(chatId, _menusDic[user.State], "Доступні роботи:"); return;
                     case BtnWorkBarista:
-                        user.Time -= 1; user.Energy -= 30; user.Mon
+                        if (user.Time < 2) await NotEnoughTime(user);
+                        user.Time -= 2; user.Money += 20; user.Energy -= 30; user.Happiness -= 7; user.Health -= 5;
+                        user.State = Menus.Day; await SendGameUpdate(user); return;
+                    case BtnWorkTutor:
+                        if (user.Time < 2) await NotEnoughTime(user);
+                        user.Time -= 2; user.Money += 25; user.Energy -= 30; user.Happiness -= 12; user.Health -= 0;
+                        user.State = Menus.Day; await SendGameUpdate(user); break;
+                    case BtnWorkFreelance:
+                        if (user.Time < 2) await NotEnoughTime(user);
+                        user.Time -= 2; user.Money += 15; user.Energy -= 20; user.Happiness -= 5; user.Health -= 0;
+                        user.State = Menus.Day; await SendGameUpdate(user); break;
 
-                    case BtnActivity: user.State = Menus.Activity; await SetKeyboard(chatId, _menusDic[user.State]); break;
-                    case BtnLeisure: user.State = Menus.Lesuire; await SetKeyboard(chatId, _menusDic[user.State]); break;
+                    case BtnLeisure: user.State = Menus.Lesuire; await SetKeyboard(chatId, _menusDic[user.State], "Достпний відпочинок: "); break;
+                    case BtnLeisureLake:
+                        user.Time -= 1; user.Money -= 0; user.Energy -= 5; user.Happiness += 10; user.Health += 5;
+                        user.State = Menus.Day; await SendGameUpdate(user); break;
+                    case BtnLeisureGym:
+                        user.Time -= 1; user.Money -= 5; user.Energy -= 10; user.Happiness += 15; user.Health += 0;
+                        user.State = Menus.Day; await SendGameUpdate(user); break;
+                    case BtnLeisureFriend:
+                        user.Time -= 1; user.Money -= 10; user.Energy -= 20; user.Happiness += 10; user.Health += 20;
+                        user.State = Menus.Day; await SendGameUpdate(user); break;
 
+                    case BtnActivity: user.State = Menus.Activity; await SetKeyboard(chatId, _menusDic[user.State], "Доступні активності:"); break;
+                    case BtnActivitySearch:
+                        {
+                            string text = AddActivityButton(user);
+                            await SendMessageAsync(chatId, text);
+                            break;
+                        }
+                    case BtnActivityVolunteering:
+                        user.Time -= 2; user.Money -= 0; user.Energy -= 25; user.Happiness += 25; user.Health += 0;
+                        user.State = Menus.Day; await SendGameUpdate(user); break;
+                    case BtnActivityFillInForm:
+                        user.IsFormFilled = true; user.Energy -= 5;
+                        user.State = Menus.Day; await SendMessageAsync(chatId, "Ви заповнили форму та буквально через годину вам відповіли, що ви підходите! Тепер ви можете переїхати на Д'Іскру!"); break;
                 }
-
 
                 context.Update(user);
                 await context.SaveChangesAsync(cancellationToken);
+                //if (user.State != Menus.Start || user.State != Menus.GetName) await SendMessageAsync(chatId, StatsToString(user));
 
+                //check stats
+                if (user.Money < 0)
+                {
+                    string text = banckrupt(user, context);
+                    await SendMessageAsync(chatId, text);
+                }
+                if (user.Health == 0)
+                {
+                    string text = Reset(user, context, GameOverEnum.health);
+                    await SendMessageAsync(chatId, text);
+                }
+                if (user.Happiness == 0)
+                {
+                    string text = Reset(user, context, GameOverEnum.happiness);
+                    await SendMessageAsync(chatId, text);
+                }
+                if (user.Energy == 0)
+                {
+                    //it's not a mistake
+                    nextDay(user, context, out string a);
+                    nextDay(user, context, out string updateText);
+                    user.Health -= 15;
+                    await SendMessageAsync(chatId, "Ви проспали увесь день, така сильна втома вплинула на ваше самопочуття (-15 здоров'я). Але тепер ви не валитесь з ніг");
+                    await SendMessageAsync(chatId, updateText);
+                }
 
-                // якщо не пункт меню
+                if (user.Time == 0)
+                {
+                    nextDay(user, context, out string updateText);
+                    await SendMessageAsync(chatId, updateText);
+                }
 
                 // якщо був використаний не визначений стан
                 if (!(Enum.IsDefined(user.State)))
@@ -205,6 +261,7 @@ namespace ProstirTgBot
                     context.Users.Update(user);
                     await context.SaveChangesAsync(cancellationToken);
                     await SendMessageAsync(chatId, $"Тепер тебе звати {user.InGameName}!");
+                    await SetKeyboard(chatId, _menusDic[user.State], $"Знизу з'явилось ігрове меню, спробуй ним скористатись\n\nА ще ось твої характеристики: {StatsToString(user)}");
                     return;
                 }
                 else
@@ -244,8 +301,57 @@ namespace ProstirTgBot
                 return Task.CompletedTask;
             }
         }
+        /// <summary>
+        /// If keyboard is not full adds helpMessage button to new activity
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns>string with text about result of searching, needs to be sended to the player</returns>
+        private static string AddActivityButton(Models.User user)
+        {
+            ReplyKeyboardMarkup keyboard = _menusDic[Menus.Activity];
+            user.Time -= 2;
+            user.Money -= 0;
+            user.Energy -= 40;
+            user.Happiness -= 10;
+            user.Health += 0;
 
-        public async Task SendMessageAsync(long chatId, string messageText)
+            //if keyboard does not have BtnActivityVolunteering button add it and return
+            if (!(keyboard.Keyboard.SelectMany(row => row)
+                        .Any(button => button.Text == BtnActivityVolunteering)))
+            {
+                _menusDic[Menus.Activity] = new ReplyKeyboardMarkup(new[]
+                {
+                    new KeyboardButton(BtnActivitySearch),
+                    new KeyboardButton(BtnActivityVolunteering )
+                });
+                return "Ви знайшли волонтерську групу, можете српобувати доєднатись до них наступного заходу!";
+            }
+            //if keyboard does not have BtnActivityFillInForm button add it and return
+            else if (!(keyboard.Keyboard.SelectMany(row => row)
+                    .Any(button => button.Text == BtnActivityFillInForm)))
+            {
+                _menusDic[Menus.Activity] = new ReplyKeyboardMarkup(new[]
+                {
+                    new KeyboardButton(BtnActivitySearch),
+                    new KeyboardButton(BtnActivityVolunteering ),
+                    new KeyboardButton(BtnActivityFillInForm )
+                });
+                return "Ви знайшли колівінг Д'Іскра. Ви можете заповнити гугл-форму та рпойти співбесіду, щоб переїхати до них";
+            }
+            return "Ви не знайшли нових тусовок";
+        }
+
+        internal async Task NotEnoughTime(Models.User user)
+        {
+            await SendMessageAsync(user.ChatId, "Ви не можете це зробити, сьогодні на це недостатньо часу. Спробуйте завтра");
+        }
+
+        private async Task SendGameUpdate(Models.User user)
+        {
+            await SendMessageAsync(user.ChatId, StatsToString(user));
+        }
+
+        private async Task SendMessageAsync(long chatId, string messageText)
         {
             _ = await _botClient.SendTextMessageAsync(
                 chatId: chatId,
@@ -254,17 +360,8 @@ namespace ProstirTgBot
                 cancellationToken: _cancellationToken);
         }
 
-        public async Task SetKeyboard(long chatId, ReplyKeyboardMarkup replyKeyboardMarkup, string message)
+        private async Task SetKeyboard(long chatId, ReplyKeyboardMarkup replyKeyboardMarkup, string message)
         {
-            _ = await _botClient.SendTextMessageAsync(
-                chatId: chatId,
-                text: message,
-                replyMarkup: replyKeyboardMarkup,
-                cancellationToken: _cancellationToken);
-        }
-        public async Task SetKeyboard(long chatId, ReplyKeyboardMarkup replyKeyboardMarkup)
-        {
-            const string message = "";
             _ = await _botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: message,
