@@ -147,6 +147,18 @@ namespace ProstirTgBot
                     return;
                 }
 
+                //TODO add events
+                if (user.Day == 0)
+                {
+
+                }
+                if (user.Apartment == ApartmentEnum.Family)
+                    switch (user.Day)
+                    {
+                        case 0: break;
+                    }
+
+
                 // choose of menu of commands
                 switch (messageText)
                 {
@@ -172,36 +184,37 @@ namespace ProstirTgBot
                     case BtnWorkTutor:
                         if (user.Time < 2) await NotEnoughTime(user);
                         user.Time -= 2; user.Money += 25; user.Energy -= 30; user.Happiness -= 12; user.Health -= 0;
-                        user.State = Menus.Day; await SendGameUpdate(user); break;
+                        user.State = Menus.Day; await SendGameUpdate(user); return;
                     case BtnWorkFreelance:
                         if (user.Time < 2) await NotEnoughTime(user);
                         user.Time -= 2; user.Money += 15; user.Energy -= 20; user.Happiness -= 5; user.Health -= 0;
-                        user.State = Menus.Day; await SendGameUpdate(user); break;
+                        user.State = Menus.Day; await SendGameUpdate(user); return;
 
-                    case BtnLeisure: user.State = Menus.Lesuire; await SetKeyboard(chatId, _menusDic[user.State], "Достпний відпочинок: "); break;
+                    case BtnLeisure: user.State = Menus.Lesuire; await SetKeyboard(chatId, _menusDic[user.State], "Достпний відпочинок: "); return;
                     case BtnLeisureLake:
                         user.Time -= 1; user.Money -= 0; user.Energy -= 5; user.Happiness += 10; user.Health += 5;
-                        user.State = Menus.Day; await SendGameUpdate(user); break;
+                        user.State = Menus.Day; await SendGameUpdate(user); return;
                     case BtnLeisureGym:
                         user.Time -= 1; user.Money -= 5; user.Energy -= 10; user.Happiness += 15; user.Health += 0;
-                        user.State = Menus.Day; await SendGameUpdate(user); break;
+                        user.State = Menus.Day; await SendGameUpdate(user); return;
                     case BtnLeisureFriend:
                         user.Time -= 1; user.Money -= 10; user.Energy -= 20; user.Happiness += 10; user.Health += 20;
-                        user.State = Menus.Day; await SendGameUpdate(user); break;
+                        user.State = Menus.Day; await SendGameUpdate(user); return;
 
-                    case BtnActivity: user.State = Menus.Activity; await SetKeyboard(chatId, _menusDic[user.State], "Доступні активності:"); break;
+                    case BtnActivity: user.State = Menus.Activity; await SetKeyboard(chatId, _menusDic[user.State], "Доступні активності:"); return;
                     case BtnActivitySearch:
                         {
                             string text = AddActivityButton(user);
                             await SendMessageAsync(chatId, text);
-                            break;
+                            return;
                         }
                     case BtnActivityVolunteering:
                         user.Time -= 2; user.Money -= 0; user.Energy -= 25; user.Happiness += 25; user.Health += 0;
-                        user.State = Menus.Day; await SendGameUpdate(user); break;
+                        user.State = Menus.Day; await SendGameUpdate(user); return;
                     case BtnActivityFillInForm:
                         user.IsFormFilled = true; user.Energy -= 5;
-                        user.State = Menus.Day; await SendMessageAsync(chatId, "Ви заповнили форму та буквально через годину вам відповіли, що ви підходите! Тепер ви можете переїхати на Д'Іскру!"); break;
+                        user.State = Menus.Day; await SendMessageAsync(chatId, "Ви заповнили форму та буквально через годину вам відповіли, що ви підходите! Тепер ви можете переїхати на Д'Іскру!");
+                        return;
                 }
 
                 context.Update(user);
