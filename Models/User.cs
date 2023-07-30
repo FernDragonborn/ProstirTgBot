@@ -20,10 +20,13 @@ namespace ProstirTgBot.Models
         }
         [Key]
         public Guid Id { get; set; }
+        [Required]
         public long ChatId { get; init; }
+        [Required]
         [MaxLength(50)]
         public string Username { get; set; }
         private string? _inGameName;
+        [Required]
         [MaxLength(50)]
         public string? InGameName
         {
@@ -34,9 +37,11 @@ namespace ProstirTgBot.Models
                 else if (value.Length > 50) throw new OverflowException("Ім'я було задовге");
             }
         }
+        [Required]
         public Menus State { get; set; }
 
         private int _day;
+        [Required]
         public int Day
         {
             get => _day;
@@ -48,6 +53,7 @@ namespace ProstirTgBot.Models
         }
 
         private int _time;
+        [Required]
         public int Time
         {
             get => _time;
@@ -60,6 +66,7 @@ namespace ProstirTgBot.Models
         }
 
         private int _energy;
+        [Required]
         public int Energy
         {
             get => _energy;
@@ -72,6 +79,7 @@ namespace ProstirTgBot.Models
         }
 
         private int _health;
+        [Required]
         public int Health
         {
             get => _health;
@@ -84,6 +92,7 @@ namespace ProstirTgBot.Models
         }
 
         private int _happiness;
+        [Required]
         public int Happiness
         {
             get => _happiness;
@@ -95,11 +104,20 @@ namespace ProstirTgBot.Models
             }
         }
 
+        [Required]
         public int Money { get; set; }
+        [Required]
+        public ApartmentEnum Apartment { get; set; }
 
+        [Required]
+        public int ActivitiesFound { get; set; }
+
+        [Required]
+        public bool IsSearchedForActivitiesToday { get; set; }
+
+        [Required]
         public bool IsFormFilled { get; set; }
 
-        public ApartmentEnum Apartment { get; set; }
     }
 
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProstirTgBot.Data;
 
@@ -11,9 +12,11 @@ using ProstirTgBot.Data;
 namespace ProstirTgBot.Migrations
 {
     [DbContext(typeof(ProstirTgBotContext))]
-    partial class ProstirTgBotContextModelSnapshot : ModelSnapshot
+    [Migration("20230730195655_RemadeInGameEventAddListOfChoices")]
+    partial class RemadeInGameEventAddListOfChoices
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,11 +27,9 @@ namespace ProstirTgBot.Migrations
 
             modelBuilder.Entity("ProstirTgBot.Models.InGameEvent", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("ActivitiesFound")
                         .HasColumnType("int");
@@ -66,10 +67,6 @@ namespace ProstirTgBot.Migrations
 
                     b.Property<string>("ChoiceDescription")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ChoiceName")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -82,13 +79,10 @@ namespace ProstirTgBot.Migrations
                     b.Property<int>("Health")
                         .HasColumnType("int");
 
-                    b.Property<int?>("InGameEventId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("InGameEventId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Money")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Time")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -126,7 +120,6 @@ namespace ProstirTgBot.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("InGameName")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 

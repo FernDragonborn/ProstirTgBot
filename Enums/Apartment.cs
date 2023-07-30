@@ -2,8 +2,8 @@
 {
     public enum ApartmentEnum
     {
-        Family,
         Campus,
+        Family,
         SmallFlat,
         Coliving,
     }

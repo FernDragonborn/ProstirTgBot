@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProstirTgBot.Data;
 
@@ -11,9 +12,11 @@ using ProstirTgBot.Data;
 namespace ProstirTgBot.Migrations
 {
     [DbContext(typeof(ProstirTgBotContext))]
-    partial class ProstirTgBotContextModelSnapshot : ModelSnapshot
+    [Migration("20230730201721_ChangedIdTypeToIntInGameEventsTable")]
+    partial class ChangedIdTypeToIntInGameEventsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,10 +69,6 @@ namespace ProstirTgBot.Migrations
 
                     b.Property<string>("ChoiceDescription")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ChoiceName")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -86,9 +85,6 @@ namespace ProstirTgBot.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("Money")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Time")
                         .HasColumnType("int");
 
                     b.HasKey("Id");

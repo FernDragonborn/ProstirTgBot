@@ -35,7 +35,7 @@ namespace ProstirTgBot
         /// <param name="user"></param>
         /// <param name="context"></param>
         /// <returns>helpMessage string for message of buncruption for player</returns>
-        internal static string banckrupt(Models.User user, Data.ProstirTgBotContext context)
+        internal static string Banckrupt(Models.User user, Data.ProstirTgBotContext context)
         {
             user.Money = 0;
             user.Apartment = ApartmentEnum.Family;
@@ -44,15 +44,19 @@ namespace ProstirTgBot
             return "Ви витратили свої останні пожитки та вас виселили. Звернутись можна було тільки до батьків, то ви так і поступили. Тепер ви живете з ними";
         }
 
-        internal static void nextDay(Models.User user, Data.ProstirTgBotContext context, out string message)
+        internal static void NextDay(Models.User user, Data.ProstirTgBotContext context, out string message)
         {
             switch (user.Apartment)
             {
-                case ApartmentEnum.Family: user.Time = 4; user.Energy += 60; user.Happiness -= 10; user.Health += 5; break;
-                case ApartmentEnum.Campus: user.Time = 4; user.Energy += 40; user.Happiness -= 5; user.Health -= 10; break;
-                case ApartmentEnum.SmallFlat: user.Time = 4; user.Energy += 75; user.Happiness += 5; user.Health += 5; break;
-                case ApartmentEnum.Coliving: user.Time = 4; user.Energy += 60; user.Happiness += 5; user.Health += 5; break;
+                case ApartmentEnum.Family: user.Energy += 60; user.Happiness -= 10; user.Health += 5; break;
+                case ApartmentEnum.Campus: user.Energy += 40; user.Happiness -= 5; user.Health -= 10; break;
+                case ApartmentEnum.SmallFlat: user.Energy += 75; user.Happiness += 5; user.Health += 5; break;
+                case ApartmentEnum.Coliving: user.Energy += 60; user.Happiness += 5; user.Health += 5; break;
             }
+
+            user.Day += 1;
+            user.Time = 4;
+            user.IsSearchedForActivitiesToday = false;
             context.Users.Update(user);
             context.SaveChanges();
             message = $"День: {user.Day}\n{StatsToString(user)}";
