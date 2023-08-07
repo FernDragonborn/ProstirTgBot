@@ -22,6 +22,23 @@ namespace ProstirTgBot.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("EFIntCollection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EFIntCollection", (string)null);
+                });
+
             modelBuilder.Entity("ProstirTgBot.Models.InGameEvent", b =>
                 {
                     b.Property<int>("Id")
@@ -30,13 +47,13 @@ namespace ProstirTgBot.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ActivitiesFound")
-                        .HasColumnType("int");
-
                     b.Property<int>("Apartment")
                         .HasColumnType("int");
 
                     b.Property<int>("Day")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DependsOnChoice")
                         .HasColumnType("int");
 
                     b.Property<string>("EventDescription")
@@ -44,7 +61,6 @@ namespace ProstirTgBot.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EventName")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -53,7 +69,7 @@ namespace ProstirTgBot.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("InGameEvents");
+                    b.ToTable("InGameEvents", (string)null);
                 });
 
             modelBuilder.Entity("ProstirTgBot.Models.InGameEventChoice", b =>
@@ -82,7 +98,7 @@ namespace ProstirTgBot.Migrations
                     b.Property<int>("Health")
                         .HasColumnType("int");
 
-                    b.Property<int?>("InGameEventId")
+                    b.Property<int>("InGameEventId")
                         .HasColumnType("int");
 
                     b.Property<int>("Money")
@@ -95,10 +111,10 @@ namespace ProstirTgBot.Migrations
 
                     b.HasIndex("InGameEventId");
 
-                    b.ToTable("InGameEventChoice");
+                    b.ToTable("InGameEventChoice", (string)null);
                 });
 
-            modelBuilder.Entity("ProstirTgBot.Models.User", b =>
+            modelBuilder.Entity("ProstirTgBot.Models.Player", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -113,6 +129,9 @@ namespace ProstirTgBot.Migrations
                     b.Property<long>("ChatId")
                         .HasColumnType("bigint");
 
+                    b.Property<int?>("ChosenChoicesId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Day")
                         .HasColumnType("int");
 
@@ -126,11 +145,16 @@ namespace ProstirTgBot.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("InGameName")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("IsFormFilled")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsLivedInCampus")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsLivedWithFamily")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsSearchedForActivitiesToday")
@@ -152,14 +176,27 @@ namespace ProstirTgBot.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.HasIndex("ChosenChoicesId");
+
+                    b.ToTable("Players", (string)null);
                 });
 
             modelBuilder.Entity("ProstirTgBot.Models.InGameEventChoice", b =>
                 {
                     b.HasOne("ProstirTgBot.Models.InGameEvent", null)
                         .WithMany("inGameEventChoices")
-                        .HasForeignKey("InGameEventId");
+                        .HasForeignKey("InGameEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ProstirTgBot.Models.Player", b =>
+                {
+                    b.HasOne("EFIntCollection", "ChosenChoices")
+                        .WithMany()
+                        .HasForeignKey("ChosenChoicesId");
+
+                    b.Navigation("ChosenChoices");
                 });
 
             modelBuilder.Entity("ProstirTgBot.Models.InGameEvent", b =>

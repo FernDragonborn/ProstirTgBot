@@ -18,13 +18,13 @@
         internal const string BtnLeisureFriend = "Погуляти з другом 💑";
         //activities menu
         internal const string BtnActivitySearch = "Шукати тусовки 🕵";
-        internal const string BtnActivityVolunteering = "Волонтерство ";
+        internal const string BtnActivityVolunteering = "Волонтерство";
         internal const string BtnActivityFillInForm = "Заповнити форму в спільножиток";
         //internal const string Btn = "Шукати тусовки 🕵";
         //relocation menu
         internal const string BtnRelocationCampus = "Гуртожиток 🔞";
         internal const string BtnRelocationFamily = "Батьки 👪";
-        internal const string BtnRelocationFlat = "Однушка десь ";
+        internal const string BtnRelocationFlat = "Однушка десь";
         internal const string BtnRelocationBigFlat = "Трьошка в центрі";
         internal const string BtnRelocationColiving = "Спільножиток Д'Іскра";
     }

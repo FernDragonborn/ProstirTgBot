@@ -6,6 +6,8 @@ namespace ProstirTgBot.Models
     {
         [Key]
         public int Id { get; set; }
+        [Required]
+        public int InGameEventId { get; set; }
         [MaxLength(100)]
         [Required]
         public string ChoiceName { get; set; }

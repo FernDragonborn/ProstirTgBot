@@ -6,5 +6,6 @@
         Family,
         SmallFlat,
         Coliving,
+        All,
     }
 }

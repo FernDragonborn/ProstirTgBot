@@ -25,7 +25,7 @@ namespace ProstirTgBot.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ProstirTgBot.Models.User", b =>
+            modelBuilder.Entity("ProstirTgBot.Models.Player", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -72,7 +72,7 @@ namespace ProstirTgBot.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Players");
                 });
 #pragma warning restore 612, 618
         }

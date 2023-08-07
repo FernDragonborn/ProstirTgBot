@@ -7,9 +7,8 @@ namespace ProstirTgBot.Models
     {
         [Key]
         public int Id { get; set; }
-        [Required]
         [MaxLength(100)]
-        public string EventName { get; set; }
+        public string? EventName { get; set; }
         [Required]
         public string EventDescription { get; set; }
         [Required]
@@ -18,9 +17,9 @@ namespace ProstirTgBot.Models
         public int Time { get; set; }
         [Required]
         public ApartmentEnum Apartment { get; set; }
-
-        public int ActivitiesFound { get; set; }
         [Required]
         public List<InGameEventChoice> inGameEventChoices { get; set; }
+        [Required]
+        public int DependsOnChoice { get; set; }
     }
 }

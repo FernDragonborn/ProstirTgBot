@@ -9,7 +9,6 @@
         Lesuire,
         Activity,
         Relocation,
-        RelocationExtended,
-        InGameEvent
+        Event,
     }
 }

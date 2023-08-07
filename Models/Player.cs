@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ProstirTgBot.Models
 {
-    public class User
+    public class Player
     {
-        public User(string username, long chatId, Menus state)
+        public Player(string username, long chatId, Menus state)
         {
             Id = Guid.NewGuid();
             Username = username;
@@ -17,6 +17,13 @@ namespace ProstirTgBot.Models
             Health = 80;
             Happiness = 80;
             Money = 100;
+            Apartment = ApartmentEnum.Family;
+            ActivitiesFound = 0;
+            IsFormFilled = false;
+            IsLivedInCampus = false;
+            IsLivedWithFamily = false;
+            IsSearchedForActivitiesToday = false;
+            ChosenChoices = new EFIntCollection();
         }
         [Key]
         public Guid Id { get; set; }
@@ -26,7 +33,6 @@ namespace ProstirTgBot.Models
         [MaxLength(50)]
         public string Username { get; set; }
         private string? _inGameName;
-        [Required]
         [MaxLength(50)]
         public string? InGameName
         {
@@ -47,7 +53,7 @@ namespace ProstirTgBot.Models
             get => _day;
             set
             {
-                if (value > 0 && value <= 14) _day = value;
+                if (value >= 0 && value <= 14) _day = value;
                 if (value > 14) _day = 14;
             }
         }
@@ -112,12 +118,17 @@ namespace ProstirTgBot.Models
         [Required]
         public int ActivitiesFound { get; set; }
 
+        public virtual EFIntCollection? ChosenChoices { get; set; }
+
         [Required]
         public bool IsSearchedForActivitiesToday { get; set; }
 
         [Required]
         public bool IsFormFilled { get; set; }
-
+        [Required]
+        public bool IsLivedWithFamily { get; set; }
+        [Required]
+        public bool IsLivedInCampus { get; set; }
     }
 
 }
