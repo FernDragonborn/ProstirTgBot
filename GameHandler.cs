@@ -117,8 +117,18 @@ namespace ProstirTgBot
         /// <returns>True if event exsits and ref _eventKeyboard for event</returns>
         internal static bool TryCheckForEvents(Player player, List<string> eventStringList, ProstirTgBotContext context, ref ReplyKeyboardMarkup keyboard, ref InGameEvent inGameEventRef)
         {
-            InGameEvent inGameEvent = context.InGameEvents.FirstOrDefault(x => x.Day == player.Day && x.Apartment == player.Apartment);
+            if (player.ChosenChoices is null || player.ChosenChoices.Count == 0) return false;
+
+            var inGameEvent = context.InGameEvents.FirstOrDefault(x => x.Day == player.Day && x.Apartment == player.Apartment);
             if (inGameEvent == null) return false;
+
+            foreach (var inGameEventChoice in inGameEvent.inGameEventChoices)
+            {
+                if (player.ChosenChoices.Any(chosenChoice => chosenChoice == inGameEventChoice.Id))
+                {
+                    return false;
+                }
+            }
 
             bool isChoiceNeeded = inGameEvent.DependsOnChoice != -1;
             bool isChoiceNotChosen = !player.ChosenChoices.Contains(inGameEvent.DependsOnChoice);

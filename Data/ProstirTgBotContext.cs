@@ -10,7 +10,7 @@ namespace ProstirTgBot.Data
         public DbSet<InGameEventChoice> InGameEventChoice { get; set; } = null!;
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=ProstirTgBotDb;Persist Security Info=True;User ID=app_connection_login;Password=123456");
+            optionsBuilder.UseSqlServer(DotNetEnv.Env.GetString("CONNECTION_STRING"));
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

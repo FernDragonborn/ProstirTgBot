@@ -5,7 +5,7 @@ namespace ProstirTgBot.Models
 {
     public class Player
     {
-        public Player(string username, long chatId, Menus state)
+        public Player(string username, long chatId)
         {
             Id = Guid.NewGuid();
             Username = username;
@@ -23,7 +23,7 @@ namespace ProstirTgBot.Models
             IsLivedInCampus = false;
             IsLivedWithFamily = false;
             IsSearchedForActivitiesToday = false;
-            ChosenChoices = new EFIntCollection();
+            ChosenChoices = new EFIntCollection { 0 };
         }
         [Key]
         public Guid Id { get; set; }
@@ -39,7 +39,8 @@ namespace ProstirTgBot.Models
             get => _inGameName;
             set
             {
-                if (value.Length <= 50) _inGameName = value;
+                if (value == null) _inGameName = "Женя";
+                else if (value.Length <= 50) _inGameName = value;
                 else if (value.Length > 50) throw new OverflowException("Ім'я було задовге");
             }
         }
@@ -65,7 +66,7 @@ namespace ProstirTgBot.Models
             get => _time;
             set
             {
-                if (value < 0) ;
+                if (value < 0) _time = 0;
                 if (value >= 0 && value <= 4) _time = value;
                 if (value > 4) _time = 4;
             }

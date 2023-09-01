@@ -3,7 +3,7 @@
 using log4net;
 using log4net.Config;
 
-[assembly: log4net.Config.XmlConfigurator]
+[assembly: XmlConfigurator]
 
 
 namespace ProstirTgBot
@@ -27,7 +27,7 @@ namespace ProstirTgBot
             Console.WriteLine($"is error enabled: {Log.IsErrorEnabled}");
             Console.WriteLine($"is fatal enabled: {Log.IsFatalEnabled}");
 
-            string dotEnv = System.IO.File.ReadAllText(".env");
+            string dotEnv = File.ReadAllText(".env");
             DotNetEnv.Env.Load(".env");
 
             var tg = new TelegramHandler();

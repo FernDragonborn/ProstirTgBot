@@ -137,10 +137,12 @@ namespace ProstirTgBot
                 //TODO скидывается менюшка с активностями при перезапуске
                 var player = context.Players.FirstOrDefault(x => x.ChatId == chatId);
 
+
+
                 // if player account not created
                 if (player == null)
                 {
-                    player = new Models.Player(message.From.Username, chatId, Menus.Start);
+                    player = new Player(message.From.Username, chatId);
                     context.Players.Add(player);
                     await context.SaveChangesAsync(cancellationToken);
                     await SetKeyboardAsync(chatId, _menusDic[player.State],
@@ -162,27 +164,7 @@ namespace ProstirTgBot
                         }
                 }
 
-                if (player is { Day: 0 or 7 or 14, State: Menus.Day or Menus.Relocation, Time: 4 })
-                {
-                    if (player.State == Menus.Day) await SetMoveOutMenuAndCheckWhereLivedAsync(player);
-
-                    if (_relocationStringList.FirstOrDefault(x => x == messageText) != null)
-                    {
-                        player.Apartment = messageText switch
-                        {
-                            BtnRelocationColiving => ApartmentEnum.Coliving,
-                            BtnRelocationFlat => ApartmentEnum.SmallFlat,
-                            BtnRelocationFamily => ApartmentEnum.Family,
-                            BtnRelocationCampus => ApartmentEnum.Campus,
-                            _ => throw new NotImplementedException(
-                                "ApartmentEnum or _relocationButtonList contains something that not implemented in SetMoveOutMenuAndCheckWhereLivedAsync")
-                        };
-                        //TODO Fix return in method
-                        await ApplyMovingInEffect(player);
-                        player.State = Menus.Day;
-                        await GameUpdateAndSetMenuAsync(player, context);
-                    }
-                }
+                await CheckIfRelocationNeededOrApplyIt(player, context, messageText);
 
                 //TODO add events to DB 
                 if (player.State == Menus.Event)
@@ -193,7 +175,9 @@ namespace ProstirTgBot
                     await GameUpdateAndSetMenuAsync(player, context);
                     return;
                 }
-                bool isFinished = TryCheckForEvents(player, _eventStringList, context, ref _eventKeyboard, ref _inGameEvent);
+                bool isFinished = false;
+                if (player.State != Menus.Start && player.State != Menus.GetName)
+                    isFinished = TryCheckForEvents(player, _eventStringList, context, ref _eventKeyboard, ref _inGameEvent);
                 if (isFinished) { await SetKeyboardAsync(player.ChatId, _eventKeyboard, $"Треба прийняти рішення!\n\n{_inGameEvent.EventDescription}"); return; }
 
                 // choose of menu 
@@ -266,7 +250,7 @@ namespace ProstirTgBot
                     await context.SaveChangesAsync(cancellationToken);
                     await SendMessageAsync(chatId, $"Тепер тебе звати {player.InGameName}!");
                     //TODO rewrite message
-                    await SetMoveOutMenuAndCheckWhereLivedAsync(player);
+                    await SetMoveOutMenuAndCheckWhereLivedAsync(player, context);
                     await SendMessageAsync(chatId, $"А ще ось твої характеристики:\n{StatsToString(player)}");
                     return;
                 }
@@ -319,6 +303,37 @@ namespace ProstirTgBot
             }
         }
 
+        private async Task CheckIfRelocationNeededOrApplyIt(Player player, ProstirTgBotContext context, string messageText)
+        {
+            if (player is not { Day: 0 or 7 or 14, State: Menus.Day or Menus.Relocation, Time: 4 }) return;
+
+            if (player.State == Menus.Day) await SetMoveOutMenuAndCheckWhereLivedAsync(player, context);
+
+            if (_relocationStringList.FirstOrDefault(x => x == messageText) == null) return;
+            try
+            {
+                player.Apartment = messageText switch
+                {
+                    BtnRelocationColiving => ApartmentEnum.Coliving,
+                    BtnRelocationFlat => ApartmentEnum.SmallFlat,
+                    BtnRelocationFamily => ApartmentEnum.Family,
+                    BtnRelocationCampus => ApartmentEnum.Campus,
+                    _ => throw new NotImplementedException(
+                        "ApartmentEnum or _relocationButtonList contains something that not implemented in SetMoveOutMenuAndCheckWhereLivedAsync")
+                };
+
+
+                //TODO Fix return in method
+                await ApplyMovingInEffect(player);
+                player.State = Menus.Day;
+                await GameUpdateAndSetMenuAsync(player, context);
+            }
+            catch (NotImplementedException ex)
+            {
+                await SendErrorAsync(player.ChatId, ex);
+            }
+        }
+
         private async Task ApplyMovingInEffect(Player player)
         {
             switch (player.Apartment)
@@ -347,17 +362,18 @@ namespace ProstirTgBot
             }
         }
 
-
         private List<string> _relocationStringList = new();
-
         /// <summary>
-        /// Sets telegram menu for relocation and marks if player lived with parents or in campus
+        /// Modifies _relocationStringList. Sets telegram menu for relocation and marks if player lived with parents or in campus 
         /// </summary>
         /// <param name="player"></param>
         /// <returns></returns>
-        private async Task SetMoveOutMenuAndCheckWhereLivedAsync(Player player)
+        private async Task SetMoveOutMenuAndCheckWhereLivedAsync(Player player, ProstirTgBotContext context)
         {
             player.State = Menus.Relocation;
+            context.Update(player);
+            context.SaveChanges();
+
             if (player.Apartment == ApartmentEnum.Family) player.IsLivedWithFamily = true;
             else if (player.Apartment == ApartmentEnum.Campus) player.IsLivedInCampus = true;
 
@@ -387,7 +403,7 @@ namespace ProstirTgBot
                 ResizeKeyboard = true
             };
 
-            await SetKeyboardAsync(player.ChatId, relocationKeyboard, "Час обирати куди переїхати!");
+            await SetKeyboardAsync(player.ChatId, relocationKeyboard, "Час обирати куди заїхати!");
         }
 
         private async Task ApplyEventEffect(Player player, InGameEventChoice choice)
@@ -434,12 +450,13 @@ namespace ProstirTgBot
             }
             if (player.Energy == 0)
             {
-                //it's not duplication mistake
+                //it's not duplication mistake. It's need to skip 2 days, not 1
                 NextDay(player, context, out string a);
                 NextDay(player, context, out string updateText);
                 player.Health -= 15;
                 await SendMessageAsync(player.ChatId, "Ви проспали увесь день, така сильна втома вплинула на ваше самопочуття (-15 З). Але тепер ви не валитесь з ніг");
                 await SendMessageAsync(player.ChatId, updateText);
+                await CheckIfRelocationNeededOrApplyIt(player, context, "");
             }
 
             if (player.Time == 0)
@@ -465,6 +482,11 @@ namespace ProstirTgBot
                 text: message,
                 replyMarkup: replyKeyboardMarkup,
                 cancellationToken: _cancellationToken);
+        }
+
+        private async Task SendErrorAsync(long chatId, NotImplementedException ex)
+        {
+            await SendMessageAsync(chatId, DotNetEnv.Env.GetString("ERROR_MESSAGE") + $"Stack strace:   {ex.StackTrace}\n\nError message:   {ex.Message}");
         }
 
     }
