@@ -33,11 +33,12 @@ namespace ProstirTgBot
             player.IsSearchedForActivitiesToday = false;
             context.Players.Update(player);
             context.SaveChanges();
+
             switch (gameOverType)
             {
                 case GameOverEnum.Manual: return "Прогрес зброшений! 🤠";
-                case GameOverEnum.Happiness: return "Вас повезли в дурку, навчання відкладається на невизначений термін";
-                case GameOverEnum.Health: return "Вас поклали в стаціонар, навчання відкладається на невизначений термін";
+                case GameOverEnum.Happiness: return "Вітаю! Ви програли!\n\nВас повезли в дурку, навчання відкладається на невизначений термін";
+                case GameOverEnum.Health: return "Вітаю! Ви програли!\n\nВас поклали в стаціонар, навчання відкладається на невизначений термін";
                 default: return "У нас технічні шоколадки, напишіть @FernDragonborn, якщо побаили це повідомлення, а ще, скоріш за все, ваш прогрес зброшено, сподіваюсь ви не далеко пройшли 😅";
             }
         }
@@ -118,16 +119,24 @@ namespace ProstirTgBot
         internal static bool TryCheckForEvents(Player player, List<string> eventStringList, ProstirTgBotContext context, ref ReplyKeyboardMarkup keyboard, ref InGameEvent inGameEventRef)
         {
             if (player.ChosenChoices is null || player.ChosenChoices.Count == 0) return false;
-
+            var cancellationToken = new CancellationTokenSource();
             var inGameEvent = context.InGameEvents.FirstOrDefault(x => x.Day == player.Day && x.Apartment == player.Apartment);
             if (inGameEvent == null) return false;
-
-            foreach (var inGameEventChoice in inGameEvent.inGameEventChoices)
+            InGameEventChoice[] unusedVariableBecauseEFSucksAndNotWorksWithoutItRight = context.InGameEventChoice.Where(x => x.InGameEventId == inGameEvent.Id).ToArray();
+            try
             {
-                if (player.ChosenChoices.Any(chosenChoice => chosenChoice == inGameEventChoice.Id))
+                foreach (var inGameEventChoice in inGameEvent.inGameEventChoices)
                 {
-                    return false;
+                    if (player.ChosenChoices.Any(chosenChoice => chosenChoice == inGameEventChoice.Id))
+                    {
+                        return false;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return false;
             }
 
             bool isChoiceNeeded = inGameEvent.DependsOnChoice != -1;

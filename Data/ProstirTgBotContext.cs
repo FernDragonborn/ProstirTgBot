@@ -11,6 +11,7 @@ namespace ProstirTgBot.Data
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer(DotNetEnv.Env.GetString("CONNECTION_STRING"));
+            optionsBuilder.EnableSensitiveDataLogging();
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

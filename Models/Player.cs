@@ -130,6 +130,24 @@ namespace ProstirTgBot.Models
         public bool IsLivedWithFamily { get; set; }
         [Required]
         public bool IsLivedInCampus { get; set; }
+        /// <summary>
+        /// Applies effect of interaction. In returned false 
+        /// </summary>
+        /// <param name="interaction"></param>
+        /// <returns>false if delegate in interaction returned false</returns>
+        internal bool ApplyInteraction(Interaction interaction)
+        {
+            State = Menus.Day;
+            if (!interaction.DoContinue(Time)) return false;
+
+            Time += interaction.Time;
+            Money += interaction.Money;
+            Energy += interaction.Energy;
+            Happiness += interaction.Happiness;
+            Health += interaction.Health;
+            return true;
+        }
     }
+
 
 }
